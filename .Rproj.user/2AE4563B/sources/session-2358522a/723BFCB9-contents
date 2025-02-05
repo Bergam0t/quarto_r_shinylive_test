@@ -12,7 +12,9 @@ embed-resources: false
 
 This is a Shinylive application embedded in a Quarto doc.
 
-Credit to [TheCoatlessProfessor](https://github.com/coatless-quarto/r-shinylive-dem) and [Lextuga007](https://github.com/Lextuga007/testing-reports)
+This doc cannot be distributed as a standalone html file, but will work without a 'true' server if deployed on github pages or posit connect cloud. 
+
+Credit to [TheCoatlessProfessor](https://github.com/coatless-quarto/r-shinylive-demo) and [Lextuga007](https://github.com/Lextuga007/testing-reports)
 
 (and a bit of ChatGPT as it's been a long time since I've written a shiny app...)
 
@@ -31,7 +33,7 @@ df <- NHSRdatasets::ae_attendances
 
 # Define UI
 ui <- fluidPage(
-  titlePanel("SPC Chart for AE Attendances"),
+  titlePanel("SPC Chart for A&E Breaches"),
   sidebarLayout(
     sidebarPanel(
       selectInput("org", "Select Org Code:", choices = unique(df$org_code)),

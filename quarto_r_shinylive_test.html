@@ -68,7 +68,8 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>This is a Shinylive application embedded in a Quarto doc.</p>
-<p>Credit to <a href="https://github.com/coatless-quarto/r-shinylive-dem">TheCoatlessProfessor</a> and <a href="https://github.com/Lextuga007/testing-reports">Lextuga007</a></p>
+<p>This doc cannot be distributed as a standalone html file, but will work without a ‘true’ server if deployed on github pages or posit connect cloud.</p>
+<p>Credit to <a href="https://github.com/coatless-quarto/r-shinylive-demo">TheCoatlessProfessor</a> and <a href="https://github.com/Lextuga007/testing-reports">Lextuga007</a></p>
 <p>(and a bit of ChatGPT as it’s been a long time since I’ve written a shiny app…)</p>
 <pre class="shinylive-r" data-engine="r"><code>#| '!! shinylive warning !!': |
 #|   shinylive does not work in self-contained HTML documents.
@@ -87,7 +88,7 @@ df &lt;- NHSRdatasets::ae_attendances
 
 # Define UI
 ui &lt;- fluidPage(
-  titlePanel("SPC Chart for AE Attendances"),
+  titlePanel("SPC Chart for A&amp;E Breaches"),
   sidebarLayout(
     sidebarPanel(
       selectInput("org", "Select Org Code:", choices = unique(df$org_code)),
