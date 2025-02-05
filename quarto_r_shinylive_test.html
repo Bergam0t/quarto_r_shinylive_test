@@ -91,8 +91,8 @@ ui &lt;- fluidPage(
   titlePanel("SPC Chart for A&amp;E Breaches"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("org", "Select Org Code:", choices = unique(df$org_code)),
-      selectInput("type", "Limit Breach Type:", choices = unique(df$type), multiple=TRUE)
+      selectInput("org", "Select Org Code", choices = unique(df$org_code)),
+      selectInput("type", "Limit A&amp;E Type (no selection = all included)", choices = unique(df$type), multiple=TRUE)
     ),
     mainPanel(
       plotOutput("spcPlot"),
