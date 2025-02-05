@@ -1,5 +1,9 @@
 Playing around with publishing options from https://github.com/coatless-quarto/r-shinylive-demo
 
+Hosted on Posit connect cloud @ [https://bergam0t-quarto-r-shinylive-test.share.connect.posit.cloud/](https://bergam0t-quarto-r-shinylive-test.share.connect.posit.cloud/)
+
+Hosted on Github Pages @ [https://bergam0t.github.io/quarto_r_shinylive_test/](https://bergam0t.github.io/quarto_r_shinylive_test/)
+
 Notes:
 
 - Does not work truly standalone (e.g. you couldn't email this out)
