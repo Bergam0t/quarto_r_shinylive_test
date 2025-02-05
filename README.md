@@ -4,7 +4,7 @@ Notes:
 
 - Does not work truly standalone (e.g. you couldn't email this out)
 - Does work on Posit Cloud Connect when hosting through the 'quarto' route.
-
+- Doesn't use plotly version of spc charts as that's not on CRAN yet and easier to just not deal with that
 
 Issues encountered:
 

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Shinylive in Quarto example</title>
+<title>R Shinylive in Quarto example</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -42,20 +42,20 @@ ul.task-list li input[type="checkbox"] {
 
 </head>
 
-<body class="fullcontent">
+<body>
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-full">
 
-<main class="content" id="quarto-document-content">
+<main class="content column-page" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Shinylive in Quarto example</h1>
+<h1 class="title">R Shinylive in Quarto example</h1>
 </div>
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-page">
 
     
   
@@ -68,16 +68,19 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>This is a Shinylive application embedded in a Quarto doc.</p>
-<p>Credit to <a href="https://github.com/coatless-quarto/r-shinylive-dem">TheCoatlessProfessor</a> and <a href="https://github.com/Lextuga007/testing-reports/tree/main">Lextuga007</a></p>
+<p>Credit to <a href="https://github.com/coatless-quarto/r-shinylive-dem">TheCoatlessProfessor</a> and <a href="https://github.com/Lextuga007/testing-reports">Lextuga007</a></p>
+<p>(and a bit of ChatGPT as it’s been a long time since I’ve written a shiny app…)</p>
 <pre class="shinylive-r" data-engine="r"><code>#| '!! shinylive warning !!': |
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
-#| viewerHeight: 600
+#| viewerHeight: 800
 library(shiny)
 library(NHSRdatasets)
 library(NHSRplotthedots)
 library(dplyr)
+library(DT)
+library(ggplot2)
 
 # Load dataset
 df &lt;- NHSRdatasets::ae_attendances
@@ -88,10 +91,11 @@ ui &lt;- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("org", "Select Org Code:", choices = unique(df$org_code)),
-      selectInput("type", "Select Type:", choices = unique(df$type))
+      selectInput("type", "Limit Breach Type:", choices = unique(df$type), multiple=TRUE)
     ),
     mainPanel(
-      plotOutput("spcPlot")
+      plotOutput("spcPlot"),
+      DT::dataTableOutput("dataTable") 
     )
   )
 )
@@ -99,19 +103,42 @@ ui &lt;- fluidPage(
 # Define Server
 server &lt;- function(input, output) {
   filtered_data &lt;- reactive({
-    df |&gt; 
-      filter(org_code == input$org, type == input$type)
+    data &lt;- df |&gt; 
+      filter(org_code == input$org, 
+             if (is.null(input$type) || length(input$type) == 0) TRUE else type %in% input$type)
+    
+    # If multiple types are selected, sum breaches by period
+    if (length(input$type) &gt; 1 || length(input$type) == 0) {
+      data &lt;- data |&gt; 
+        group_by(period) |&gt; 
+        summarise(breaches = sum(breaches, na.rm = TRUE), .groups = "drop")  # Summing breaches
+    }
+    
+    data  # Return modified dataset
   })
   
+
   output$spcPlot &lt;- renderPlot({
-    filtered_data() |&gt; 
+    
+    if (nrow(filtered_data()) == 0) {
+    # Return an empty plot if there's no data
+    spc_plot &lt;- ggplot() + 
+             theme_minimal() + 
+             labs(title = "No Data Available", x = "", y = "")
+  } else {
+    
+    spc_plot &lt;- filtered_data() |&gt; 
       ptd_spc(value_field = breaches, date_field = period, improvement_direction = "decrease") |&gt;
       ptd_create_ggplot()
+  }
+    
+    spc_plot
+  })
+  
+  output$dataTable &lt;- DT::renderDataTable({
+    filtered_data()
   })
 }
-
-# Run App
-shinyApp(ui, server)
 
 
 # Create Shiny app ----

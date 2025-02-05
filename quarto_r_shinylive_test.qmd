@@ -1,7 +1,8 @@
 ---
-title: Shinylive in Quarto example
+title: R Shinylive in Quarto example
 format:
   html:
+    page-layout: full
     resources:
       - shinylive-sw.js
 filters:
@@ -11,15 +12,19 @@ embed-resources: false
 
 This is a Shinylive application embedded in a Quarto doc.
 
-Credit to [TheCoatlessProfessor](https://github.com/coatless-quarto/r-shinylive-dem) and [Lextuga007](https://github.com/Lextuga007/testing-reports/tree/main)
+Credit to [TheCoatlessProfessor](https://github.com/coatless-quarto/r-shinylive-dem) and [Lextuga007](https://github.com/Lextuga007/testing-reports)
+
+(and a bit of ChatGPT as it's been a long time since I've written a shiny app...)
 
 ```{shinylive-r}
 #| standalone: true
-#| viewerHeight: 600
+#| viewerHeight: 800
 library(shiny)
 library(NHSRdatasets)
 library(NHSRplotthedots)
 library(dplyr)
+library(DT)
+library(ggplot2)
 
 # Load dataset
 df <- NHSRdatasets::ae_attendances
@@ -30,10 +35,11 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("org", "Select Org Code:", choices = unique(df$org_code)),
-      selectInput("type", "Select Type:", choices = unique(df$type))
+      selectInput("type", "Limit Breach Type:", choices = unique(df$type), multiple=TRUE)
     ),
     mainPanel(
-      plotOutput("spcPlot")
+      plotOutput("spcPlot"),
+      DT::dataTableOutput("dataTable") 
     )
   )
 )
@@ -41,19 +47,42 @@ ui <- fluidPage(
 # Define Server
 server <- function(input, output) {
   filtered_data <- reactive({
-    df |> 
-      filter(org_code == input$org, type == input$type)
+    data <- df |> 
+      filter(org_code == input$org, 
+             if (is.null(input$type) || length(input$type) == 0) TRUE else type %in% input$type)
+    
+    # If multiple types are selected, sum breaches by period
+    if (length(input$type) > 1 || length(input$type) == 0) {
+      data <- data |> 
+        group_by(period) |> 
+        summarise(breaches = sum(breaches, na.rm = TRUE), .groups = "drop")  # Summing breaches
+    }
+    
+    data  # Return modified dataset
   })
   
+
   output$spcPlot <- renderPlot({
-    filtered_data() |> 
+    
+    if (nrow(filtered_data()) == 0) {
+    # Return an empty plot if there's no data
+    spc_plot <- ggplot() + 
+             theme_minimal() + 
+             labs(title = "No Data Available", x = "", y = "")
+  } else {
+    
+    spc_plot <- filtered_data() |> 
       ptd_spc(value_field = breaches, date_field = period, improvement_direction = "decrease") |>
       ptd_create_ggplot()
+  }
+    
+    spc_plot
+  })
+  
+  output$dataTable <- DT::renderDataTable({
+    filtered_data()
   })
 }
-
-# Run App
-shinyApp(ui, server)
 
 
 # Create Shiny app ----
