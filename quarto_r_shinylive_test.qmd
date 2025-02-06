@@ -12,11 +12,15 @@ embed-resources: false
 
 This is a Shinylive application embedded in a Quarto doc.
 
-This doc cannot be distributed as a standalone html file, but will work without a 'true' server if deployed on github pages or posit connect cloud. 
+This doc cannot be distributed as a standalone html file, but will work without a 'true' server if deployed on github pages or posit connect cloud.
 
 Credit to [TheCoatlessProfessor](https://github.com/coatless-quarto/r-shinylive-demo) and [Lextuga007](https://github.com/Lextuga007/testing-reports)
 
 (and a bit of ChatGPT as it's been a long time since I've written a shiny app...)
+
+:::{.callout-note}
+The plot can take a good 15 seconds plus to load the first time - please be patient!
+:::
 
 ```{shinylive-r}
 #| standalone: true
@@ -41,7 +45,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotOutput("spcPlot"),
-      DT::dataTableOutput("dataTable") 
+      DT::dataTableOutput("dataTable")
     )
   )
 )
@@ -49,38 +53,38 @@ ui <- fluidPage(
 # Define Server
 server <- function(input, output) {
   filtered_data <- reactive({
-    data <- df |> 
-      filter(org_code == input$org, 
+    data <- df |>
+      filter(org_code == input$org,
              if (is.null(input$type) || length(input$type) == 0) TRUE else type %in% input$type)
-    
+
     # If multiple types are selected, sum breaches by period
     if (length(input$type) > 1 || length(input$type) == 0) {
-      data <- data |> 
-        group_by(period) |> 
+      data <- data |>
+        group_by(period) |>
         summarise(breaches = sum(breaches, na.rm = TRUE), .groups = "drop")  # Summing breaches
     }
-    
+
     data  # Return modified dataset
   })
-  
+
 
   output$spcPlot <- renderPlot({
-    
+
     if (nrow(filtered_data()) == 0) {
     # Return an empty plot if there's no data
-    spc_plot <- ggplot() + 
-             theme_minimal() + 
+    spc_plot <- ggplot() +
+             theme_minimal() +
              labs(title = "No Data Available", x = "", y = "")
   } else {
-    
-    spc_plot <- filtered_data() |> 
+
+    spc_plot <- filtered_data() |>
       ptd_spc(value_field = breaches, date_field = period, improvement_direction = "decrease") |>
       ptd_create_ggplot()
   }
-    
+
     spc_plot
   })
-  
+
   output$dataTable <- DT::renderDataTable({
     filtered_data()
   })
